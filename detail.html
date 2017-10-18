@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,maximum-scale=1,user-scalable=1">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="css/mui.min.css">
+		<link rel="stylesheet" href="css/all-css.css" />
+		<link rel="stylesheet" href="css/detail.css">
+		<title>行情</title>
+
+	</head>
+
+	<body>
+		<!--顶部增加DIV-->
+		<div class="qyn-top new_qyn_top"></div>
+		<!--底导航-->
+
+		<!--底导航-->
+
+
+
+			<!--行情-->
+			<div id="slider" class="mui-slider mui-fullscreen">
+				<div id="segmentedControl" class="mui-scroll-wrapper mui-slider-indicator mui-segmented-control mui-segmented-control-inverted mui-segmented-control-negative" style="height: 40px; margin-top: 25px;z-index: 1000">
+					<div class="mui-scroll new_tab" style="width: 100%;">
+						<span id="sp_back" class="mui-icon mui-icon-left-nav mui-pull-left" style="color: #ffffff;"></span>
+
+					</div>
+					<div class="de_title">
+						<div class="de_name" id="pname"></div>
+						<div class="de_time" id="createtime"></div>
+					</div>
+
+				</div>
+				<div id="high_data" class="mui-content mui-scroll-wrapper mui-slider-group" style="top:60px;">
+					<div class="mui-scroll">
+						<div class="detail" style="height: 100%">
+							<div class="de_content">
+								<div class="de_item">
+									<div class="de_lh mb6">价格范围</div>
+									<div class="de_size1" id="priceinterval">55000-56000</div>
+								</div>
+								<div class="de_item">
+									<div class="de_lh">均价</div>
+									<div class="de_size2" id="averageprice">55000</div>
+								</div>
+								<div class="de_item">
+									<div class="de_lh">涨跌</div>
+									<div class="de_size3" id="pricechange">+300</div>
+								</div>
+							</div>
+							<div class="mt9 high_box">
+								<div class="de_month" id="de_month">
+									<a href="javascript:void(0)" class="month_item active">一个月</a>
+									<a href="javascript:void(0)" class="month_item">三个月</a>
+									<a href="javascript:void(0)" class="month_item">六个月</a>
+								</div>
+								<div id="container">
+
+								</div>
+								<div class="de_data">
+									<div class="data_item1">
+										日期
+									</div>
+									<div class="data_item2">
+										均价
+									</div>
+									<div class="data_item1">
+										涨跌
+									</div>
+								</div>
+								<ul class="data_list" id="data_list">
+									<!--<li >-->
+									<!--<div class="li_item1">9月30日</div>-->
+									<!--<div class="li_item2">35500</div>-->
+									<!--<div class="li_item1 item_cen">-->
+									<!--<div class="price_change change1">+330</div>-->
+									<!--</div>-->
+									<!--</li>-->
+								</ul>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+
+			</div>
+			<!-- off-canvas backdrop -->
+
+
+
+		<script type="text/javascript " src="js/mui.min.js "></script>
+		<script type="text/javascript " src="js/mui.pullToRefresh.js "></script>
+		<script type="text/javascript " src="js/mui.pullToRefresh.material.js "></script>
+		<script type="text/javascript " src="js/jquery-1.11.1.min.js "></script>
+		<script type="text/javascript " src="js/json2.min.js "></script>
+		<script type="text/javascript " src="js/constant.js "></script>
+		<script type="text/javascript " src="js/common.js "></script>
+
+		<script src="js/highchart.js"></script>
+		<!--<script src="https://img.hcharts.cn/highcharts/modules/exporting.js"></script>-->
+		<script src="https://img.hcharts.cn/highcharts-plugins/highcharts-zh_CN.js"></script>
+		<script>
+			$(function () {
+				var url = C_URL + C_M_QKLINK
+				var pname = sessionStorage.getItem('pname')
+				var createtime = sessionStorage.getItem('createtime')
+				var priceinterval = sessionStorage.getItem('priceinterval')
+				var averageprice = sessionStorage.getItem('averageprice')
+				var pricechange = sessionStorage.getItem('pricechange')
+				var category = sessionStorage.getItem('category')
+				var initData = {category:category,flag:1}
+				$("#pname").html(pname)
+				$("#createtime").html(createtime)
+				$("#priceinterval").html(priceinterval)
+				$("#averageprice").html(averageprice)
+//				$("#pricechange").html(pricechange)
+				if(Number(pricechange) >= 0){
+					$("#pricechange").html('+'+pricechange)
+				}else{
+					$("#pricechange").html('-'+pricechange)
+				}
+				getData(url,initData)
+				mui("#de_month").on('tap','a',function(){
+
+					var oIndex = $(this).index()
+					$(this).addClass('active').siblings().removeClass('active')
+					if(oIndex == 0){
+						var data = {category:category,flag:1}
+						getData(url,data)
+					}else if(oIndex == 1){
+						var data = {category:category,flag:3}
+						getData(url,data)
+					}else if(oIndex == 2){
+						var data = {category:category,flag:6}
+						getData(url,data)
+					}
+
+				})
+				document.getElementById("sp_back").addEventListener('tap',function(){
+						window.history.back()
+				},false)
+				function changeDate(date){
+					var newDate = new Date(date)
+					var month = newDate.getMonth() + 1;
+					var day = newDate.getDate()
+					var d = month + '月' + day + '日'
+					return d;
+				}
+				function getData(url,data){
+					$.getJSON(url,data,function (data) {
+						console.log(data)
+
+						var str ='';
+						var newArr = []
+						for(var i = 0;i<data.length;i++){
+
+							str += '<li>'
+							str += '<div class="li_item1">'+ changeDate(data[i].createTime)+'</div>'
+							str += '<div class="li_item2">'+data[i].averagePrice+'</div>'
+							str	+= '<div class="li_item1 item_cen">'
+							if(data[i].priceChange >= 0){
+								str += '<div class="price_change change1">+'+data[i].priceChange+'</div>'
+							}else{
+								str += '<div class="price_change change2">'+data[i].priceChange+'</div>'
+							}
+
+							str	+= '</div>'
+							str += '</li>';
+							$("#data_list").empty();
+							$("#data_list").append(str);
+
+
+							(function(i){
+								var arr = []
+								arr.push( Date.parse(new Date((data[i].createTime).replace(/-/,"/"))))
+								arr.push(Number(data[i].averagePrice))
+								newArr.push(arr)
+							})(i)
+
+						}
+						console.log(newArr)
+						$('#container').highcharts({
+							chart: {
+								zoomType: 'x'
+							},
+							title: {
+								text: '美元兑欧元汇率走势图'
+							},
+							subtitle: {
+								text: document.ontouchstart === undefined ?
+										'鼠标拖动可以进行缩放' : '手势操作进行缩放'
+							},
+							xAxis: {
+								type: 'datetime',
+								dateTimeLabelFormats: {
+									millisecond: '%H:%M:%S.%L',
+									second: '%H:%M:%S',
+									minute: '%H:%M',
+									hour: '%H:%M',
+									day: '%m-%d',
+									week: '%m-%d',
+									month: '%Y-%m',
+									year: '%Y'
+								}
+							},
+							tooltip: {
+								dateTimeLabelFormats: {
+									millisecond: '%H:%M:%S.%L',
+									second: '%H:%M:%S',
+									minute: '%H:%M',
+									hour: '%H:%M',
+									day: '%Y-%m-%d',
+									week: '%m-%d',
+									month: '%Y-%m',
+									year: '%Y'
+								}
+							},
+							yAxis: {
+								title: {
+									text: ''
+								},
+								type: 'column'
+							},
+							plotOptions: {
+								area: {
+									fillColor: {
+										linearGradient: {
+											x1: 0,
+											y1: 0,
+											x2: 0,
+											y2: 1
+										},
+										stops: [
+											[0, Highcharts.getOptions().colors[0]],
+											[1, Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+										]
+									},
+									marker: {
+										radius: 2
+									},
+									lineWidth: 1,
+									states: {
+										hover: {
+											lineWidth: 1
+										}
+									},
+									threshold: null
+								}
+							},
+							series: [{
+								type: 'area',
+								name: '',
+								data:newArr
+								}
+							]
+						});
+					});
+
+				}
+
+			});
+
+
+		</script>
+		<script>
+			mui.init({
+				swipeBack: false,
+				pullRefresh : {
+					container:"#high_data",
+					up : {
+						height:0,
+						bottom:0,
+						auto:false,
+						contentrefresh : "正在加载...",
+						contentnomore:'没有更多数据了',
+						callback :function(){
+							var self = this
+							setTimeout(function(){
+								mui('#high_data').pullRefresh().endPullupToRefresh();
+								mui('#high_data').pullRefresh().disablePullupToRefresh();
+							},1000)
+
+//							this.endPullupToRefresh(true);
+						}
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>
